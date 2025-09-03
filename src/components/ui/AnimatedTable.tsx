@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Calendar, FileText, MessageSquare } from "lucide-react";
 
 interface Procedimento {
   id: number;
@@ -13,41 +14,36 @@ interface AnimatedTableProps {
 }
 
 export default function AnimatedTable({ procedimentos, delay = 0 }: AnimatedTableProps) {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.05,
-        delayChildren: delay
-      }
-    }
-  };
-
-  const rowVariants = {
-    hidden: { opacity: 0, y: 20, scale: 0.95 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 15
-      }
-    }
-  };
+  if (procedimentos.length === 0) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay, duration: 0.5 }}
+        className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center"
+      >
+        <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+          <FileText className="w-8 h-8 text-gray-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum Procedimento</h3>
+        <p className="text-gray-600">Os procedimentos cadastrados aparecerão aqui em uma tabela organizada.</p>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-      className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.5 }}
+      className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
     >
-      <h2 className="text-lg font-semibold text-gray-900 mb-6">Histórico de Procedimentos</h2>
+      <div className="px-6 py-4 border-b border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-900">Histórico de Procedimentos</h3>
+      </div>
+      
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
+        <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -62,25 +58,36 @@ export default function AnimatedTable({ procedimentos, delay = 0 }: AnimatedTabl
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {procedimentos.slice(0, 10).map((procedimento, index) => (
+            {procedimentos.map((procedimento, index) => (
               <motion.tr
                 key={procedimento.id}
-                variants={rowVariants}
-                whileHover={{
-                  scale: 1.01,
-                  backgroundColor: "#f9fafb",
-                  transition: { duration: 0.2 }
-                }}
-                className="hover:bg-gray-50"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: delay + index * 0.1 }}
+                whileHover={{ backgroundColor: "#f9fafb" }}
+                className="hover:bg-gray-50 transition-colors"
               >
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {procedimento.nome}
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <FileText className="w-4 h-4 text-blue-500 mr-3" />
+                    <span className="text-sm font-medium text-gray-900">{procedimento.nome}</span>
+                  </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(procedimento.data).toLocaleDateString('pt-BR')}
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <Calendar className="w-4 h-4 text-green-500 mr-3" />
+                    <span className="text-sm text-gray-900">
+                      {new Date(procedimento.data).toLocaleDateString('pt-BR')}
+                    </span>
+                  </div>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-500">
-                  {procedimento.observacao}
+                <td className="px-6 py-4">
+                  <div className="flex items-start">
+                    <MessageSquare className="w-4 h-4 text-purple-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm text-gray-900 max-w-xs truncate">
+                      {procedimento.observacao || "Sem observações"}
+                    </span>
+                  </div>
                 </td>
               </motion.tr>
             ))}

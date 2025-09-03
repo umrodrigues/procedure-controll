@@ -1,5 +1,5 @@
 import { motion, Variants } from "framer-motion";
-import { ClipboardList } from "lucide-react";
+import { Trophy, Medal, Award } from "lucide-react";
 
 interface RankingItem {
   nome: string;
@@ -13,6 +13,23 @@ interface RankingCardProps {
 }
 
 export default function RankingCard({ title, items, delay = 0 }: RankingCardProps) {
+  if (items.length === 0) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay, duration: 0.5 }}
+        className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center"
+      >
+        <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+          <Trophy className="w-8 h-8 text-gray-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Ranking Vazio</h3>
+        <p className="text-gray-600">Quando houver procedimentos cadastrados, o ranking será exibido aqui.</p>
+      </motion.div>
+    );
+  }
+
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
@@ -25,11 +42,10 @@ export default function RankingCard({ title, items, delay = 0 }: RankingCardProp
   };
 
   const itemVariants: Variants = {
-    hidden: { opacity: 0, x: -20, scale: 0.9 },
+    hidden: { opacity: 0, x: -20 },
     visible: {
       opacity: 1,
       x: 0,
-      scale: 1,
       transition: {
         type: "spring",
         stiffness: 100,
@@ -38,56 +54,53 @@ export default function RankingCard({ title, items, delay = 0 }: RankingCardProp
     }
   };
 
+  const getIcon = (position: number) => {
+    switch (position) {
+      case 0:
+        return <Trophy className="w-5 h-5 text-yellow-500" />;
+      case 1:
+        return <Medal className="w-5 h-5 text-gray-400" />;
+      case 2:
+        return <Award className="w-5 h-5 text-amber-600" />;
+      default:
+        return <div className="w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center text-xs font-bold text-gray-600">
+          {position + 1}
+        </div>;
+    }
+  };
+
   return (
     <motion.div
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-lg transition-all duration-300"
+      className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300"
     >
-      <div className="flex items-center justify-between mb-4 sm:mb-6">
-        <h2 className="text-base sm:text-lg font-semibold text-gray-900">{title}</h2>
-        <motion.div
-          whileHover={{ scale: 1.1 }}
-          transition={{ duration: 0.2 }}
-        >
-          <ClipboardList className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
-        </motion.div>
-      </div>
+      <h2 className="text-lg font-semibold text-gray-900 mb-6">{title}</h2>
       
-      <div className="space-y-3 sm:space-y-4">
+      <div className="space-y-4">
         {items.map((item, index) => (
           <motion.div
             key={item.nome}
             variants={itemVariants}
-            whileHover={{
-              x: 10,
-              scale: 1.02,
-              transition: { duration: 0.2 }
-            }}
-            className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            whileHover={{ scale: 1.02 }}
+            className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-white rounded-lg border border-gray-100 hover:border-gray-200 transition-all duration-200"
           >
-            <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="flex items-center space-x-3">
               <motion.div
-                className={`w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base ${
-                  index === 0 ? 'bg-yellow-500' : 
-                  index === 1 ? 'bg-gray-400' : 
-                  'bg-orange-500'
-                }`}
                 whileHover={{ scale: 1.1 }}
                 transition={{ duration: 0.2 }}
               >
-                {index + 1}
+                {getIcon(index)}
               </motion.div>
-              <span className="font-medium text-gray-900 text-sm sm:text-base truncate max-w-[120px] sm:max-w-[150px] md:max-w-none">{item.nome}</span>
+              <span className="font-medium text-gray-900">{item.nome}</span>
             </div>
-            <motion.span 
-              className="text-base sm:text-lg font-bold text-gray-600"
-              whileHover={{ scale: 1.1 }}
-              transition={{ duration: 0.2 }}
-            >
-              {item.quantidade}
-            </motion.span>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-500">Quantidade:</span>
+              <span className="px-2 py-1 bg-blue-100 text-blue-800 text-sm font-semibold rounded-full">
+                {item.quantidade}
+              </span>
+            </div>
           </motion.div>
         ))}
       </div>

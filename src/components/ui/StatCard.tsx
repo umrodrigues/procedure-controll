@@ -68,6 +68,16 @@ export default function StatCard({ title, value, icon: Icon, color, delay = 0 }:
           >
             {count}
           </motion.p>
+          {count === 0 && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="text-xs text-gray-500 mt-1"
+            >
+              Nenhum registro
+            </motion.p>
+          )}
         </div>
       </div>
     </motion.div>

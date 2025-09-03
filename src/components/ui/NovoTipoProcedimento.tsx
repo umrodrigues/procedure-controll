@@ -143,19 +143,31 @@ export default function NovoTipoProcedimento({
 
       <div className="mt-6">
         <h3 className="text-sm font-medium text-gray-700 mb-3">Tipos Disponíveis:</h3>
-        <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
-          {procedimentosExistentes.map((tipo, index) => (
-            <motion.div
-              key={tipo}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="px-3 py-2 bg-gray-50 rounded-lg text-sm text-gray-700 border border-gray-200"
-            >
-              {tipo}
-            </motion.div>
-          ))}
-        </div>
+        {procedimentosExistentes.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-center py-4 text-gray-500"
+          >
+            <p className="text-sm">Nenhum tipo de procedimento cadastrado ainda.</p>
+            <p className="text-xs mt-1">Adicione o primeiro tipo usando o formulário acima.</p>
+          </motion.div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
+            {procedimentosExistentes.map((tipo, index) => (
+              <motion.div
+                key={tipo}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="px-3 py-2 bg-gray-50 rounded-lg text-sm text-gray-700 border border-gray-200"
+              >
+                {tipo}
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
