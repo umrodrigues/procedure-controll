@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { Eye, EyeOff, User, Lock, CheckCircle, Sparkles } from "lucide-react";
+import { usuarioService } from "@/lib/services";
+import { useAlert } from "@/components/ui/Alert";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -10,20 +12,36 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const { showAlert, AlertContainer } = useAlert();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    if (username === "admin" && password === "123456") {
-      setTimeout(() => {
-        setShowSuccess(true);
+    try {
+      const usuario = await usuarioService.autenticar(username, password);
+      
+      if (usuario) {
         setTimeout(() => {
-          window.location.href = "/dashboard";
-        }, 1500);
-      }, 1000);
-    } else {
-      alert("Usuário ou senha incorretos! Use admin/123456");
+          setShowSuccess(true);
+          setTimeout(() => {
+            window.location.href = "/dashboard";
+          }, 1500);
+        }, 1000);
+      } else {
+        showAlert({
+          type: 'error',
+          title: 'Login Inválido',
+          message: 'Usuário ou senha incorretos!'
+        });
+        setIsLoading(false);
+      }
+    } catch (error) {
+      showAlert({
+        type: 'error',
+        title: 'Erro de Conexão',
+        message: 'Erro ao fazer login. Tente novamente.'
+      });
       setIsLoading(false);
     }
   };
@@ -224,6 +242,7 @@ export default function LoginPage() {
           </motion.div>
         </motion.div>
       </motion.div>
+      <AlertContainer />
     </div>
   );
 }

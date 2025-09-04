@@ -21,63 +21,86 @@ import ProcedimentoForm from "../../components/ui/ProcedimentoForm";
 import AnimatedTable from "../../components/ui/AnimatedTable";
 import NovoTipoProcedimento from "../../components/ui/NovoTipoProcedimento";
 import EmptyState from "../../components/ui/EmptyState";
+import { procedimentoService, tipoProcedimentoService, Procedimento as ProcedimentoDB, TipoProcedimento } from "@/lib/services";
+import { useAlert } from "@/components/ui/Alert";
 
-interface Procedimento {
-  id: number;
-  nome: string;
-  data: string;
-  observacao: string;
-}
 
-const procedimentosIniciais = [
-  "Consulta Médica",
-  "Exame de Sangue",
-  "Ressonância Magnética",
-  "Tomografia Computadorizada",
-  "Eletrocardiograma",
-  "Ultrassom",
-  "Radiografia",
-  "Endoscopia",
-  "Colonoscopia",
-  "Biópsia"
-];
 
 export default function DashboardPage() {
-  const [procedimentos, setProcedimentos] = useState<Procedimento[]>([]);
-  const [tiposProcedimentos, setTiposProcedimentos] = useState<string[]>(procedimentosIniciais);
+  const [procedimentos, setProcedimentos] = useState<ProcedimentoDB[]>([]);
+  const [tiposProcedimentos, setTiposProcedimentos] = useState<TipoProcedimento[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [mesAtual, setMesAtual] = useState(0);
 
   const totalProcedimentos = procedimentos.length;
-  const procedimentosEsteMes = procedimentos.filter(p => new Date(p.data).getMonth() === new Date().getMonth()).length;
-  const tiposDiferentes = new Set(procedimentos.map(p => p.nome)).size;
+  const procedimentosEsteMes = procedimentos.filter(p => new Date(p.dataProcedimento).getMonth() === mesAtual).length;
+  const tiposDiferentes = tiposProcedimentos.length;
   
-  const topProcedimentos = Object.entries(
-    procedimentos.reduce((acc, proc) => {
-      acc[proc.nome] = (acc[proc.nome] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>)
-  )
+  const topProcedimentos = procedimentos.reduce((acc, proc) => {
+    const tipo = proc.tipoProcedimento.nome;
+    acc[tipo] = (acc[tipo] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const top3Procedimentos = Object.entries(topProcedimentos)
     .sort(([,a], [,b]) => b - a)
     .slice(0, 3)
     .map(([nome, quantidade]) => ({ nome, quantidade }));
 
-  const handleSubmit = (data: { nome: string; data: string; observacao: string }) => {
-    const novo = {
-      id: Date.now(),
-      ...data
-    };
-    setProcedimentos([novo, ...procedimentos]);
-    console.log("Novo procedimento cadastrado:", novo);
+  const handleSubmit = async (data: { idTipoProcedimento: number; data: string; observacao: string }) => {
+    try {
+      const novoProcedimento = await procedimentoService.criar({
+        idTipoProcedimento: data.idTipoProcedimento,
+        idUsuario: 1,
+        dataProcedimento: new Date(data.data),
+        observacao: data.observacao
+      });
+      
+      setProcedimentos([novoProcedimento, ...procedimentos]);
+      console.log("Novo procedimento cadastrado:", novoProcedimento);
+    } catch (error) {
+      console.error("Erro ao cadastrar procedimento:", error);
+      alert("Erro ao cadastrar procedimento. Tente novamente.");
+    }
   };
 
-  const handleNovoTipo = (novoTipo: string) => {
-    setTiposProcedimentos([...tiposProcedimentos, novoTipo]);
-    console.log("Novo tipo de procedimento adicionado:", novoTipo);
+  const handleNovoTipo = async (novoTipo: string) => {
+    try {
+      const novoTipoProc = await tipoProcedimentoService.criar(novoTipo);
+      setTiposProcedimentos([...tiposProcedimentos, novoTipoProc]);
+      console.log("Novo tipo de procedimento adicionado:", novoTipoProc);
+    } catch (error) {
+      console.error("Erro ao adicionar tipo:", error);
+      alert("Erro ao adicionar tipo. Tente novamente.");
+    }
   };
 
   const handleLogout = () => {
     window.location.href = "/";
   };
+
+  useEffect(() => {
+    const carregarDados = async () => {
+      try {
+        setLoading(true);
+        const [procedimentosData, tiposData] = await Promise.all([
+          procedimentoService.listarTodos(),
+          tipoProcedimentoService.listarTodos()
+        ]);
+        
+        setProcedimentos(procedimentosData);
+        setTiposProcedimentos(tiposData);
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+        alert("Erro ao carregar dados do banco. Tente novamente.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    carregarDados();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -110,7 +133,13 @@ export default function DashboardPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 md:py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-8">
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-8">
           <StatCard
             title="Total de Procedimentos"
             value={totalProcedimentos}
@@ -135,10 +164,10 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-8">
-          {topProcedimentos.length > 0 ? (
+          {top3Procedimentos.length > 0 ? (
             <RankingCard
               title="Top 3 Procedimentos"
-              items={topProcedimentos}
+              items={top3Procedimentos}
               delay={0.3}
             />
           ) : (
@@ -154,21 +183,26 @@ export default function DashboardPage() {
             showForm={showForm}
             onToggleForm={() => setShowForm(!showForm)}
             onSubmit={handleSubmit}
-            procedimentosDisponiveis={tiposProcedimentos}
+            procedimentosDisponiveis={tiposProcedimentos.map(t => ({ id: t.id, nome: t.nome }))}
           />
         </div>
 
         <div className="mb-6 sm:mb-8">
           <NovoTipoProcedimento
             onNovoTipo={handleNovoTipo}
-            procedimentosExistentes={tiposProcedimentos}
+            procedimentosExistentes={tiposProcedimentos.map(t => t.nome)}
           />
         </div>
 
         <div className="mt-6 sm:mt-8">
           {procedimentos.length > 0 ? (
             <AnimatedTable
-              procedimentos={procedimentos}
+              procedimentos={procedimentos.map(p => ({
+                id: p.id,
+                nome: p.tipoProcedimento.nome,
+                data: p.dataProcedimento.toISOString().split('T')[0],
+                observacao: p.observacao || ''
+              }))}
               delay={0.5}
             />
           ) : (
@@ -182,6 +216,8 @@ export default function DashboardPage() {
             />
           )}
         </div>
+          </>
+        )}
       </main>
     </div>
   );

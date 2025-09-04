@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id               Int            @id @default(autoincrement()) @map("ID")
+  nome             String         @map("NOME")
+  email            String         @unique @map("EMAIL")
+  senhaHash        String         @map("SENHA_HASH")
+  ativo            Boolean        @default(true) @map("ATIVO")
+  dataCriacao      DateTime       @default(now()) @map("DATA_CRIACAO")
+  dataAtualizacao  DateTime       @default(now()) @updatedAt @map("DATA_ATUALIZACAO")
+  procedimentos    Procedimento[]
+
+  @@map("TB_USUARIOS")
+}
+
+model TipoProcedimento {
+  id               Int            @id @default(autoincrement()) @map("ID")
+  nome             String         @unique @map("NOME")
+  descricao        String?        @map("DESCRICAO")
+  ativo            Boolean        @default(true) @map("ATIVO")
+  dataCriacao      DateTime       @default(now()) @map("DATA_CRIACAO")
+  dataAtualizacao  DateTime       @default(now()) @updatedAt @map("DATA_ATUALIZACAO")
+  procedimentos    Procedimento[]
+
+  @@map("TB_TIPOS_PROCEDIMENTOS")
+}
+
+model Procedimento {
+  id                   Int              @id @default(autoincrement()) @map("ID")
+  idTipoProcedimento   Int              @map("ID_TIPO_PROCEDIMENTO")
+  idUsuario            Int              @map("ID_USUARIO")
+  dataProcedimento     DateTime         @map("DATA_PROCEDIMENTO")
+  observacao           String?          @map("OBSERVACAO")
+  dataCriacao          DateTime         @default(now()) @map("DATA_CRIACAO")
+  dataAtualizacao      DateTime         @default(now()) @updatedAt @map("DATA_ATUALIZACAO")
+  tipoProcedimento     TipoProcedimento @relation(fields: [idTipoProcedimento], references: [id])
+  usuario              Usuario          @relation(fields: [idUsuario], references: [id])
+
+  @@map("TB_PROCEDIMENTOS")
+}

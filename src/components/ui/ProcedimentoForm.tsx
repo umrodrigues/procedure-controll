@@ -5,8 +5,8 @@ import { useState } from "react";
 interface ProcedimentoFormProps {
   showForm: boolean;
   onToggleForm: () => void;
-  onSubmit: (data: { nome: string; data: string; observacao: string }) => void;
-  procedimentosDisponiveis: string[];
+  onSubmit: (data: { idTipoProcedimento: number; data: string; observacao: string }) => void;
+  procedimentosDisponiveis: { id: number; nome: string }[];
 }
 
 export default function ProcedimentoForm({ 
@@ -16,15 +16,19 @@ export default function ProcedimentoForm({
   procedimentosDisponiveis 
 }: ProcedimentoFormProps) {
   const [formData, setFormData] = useState({
-    nome: "",
+    idTipoProcedimento: 0,
     data: "",
     observacao: ""
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (formData.idTipoProcedimento === 0) {
+      alert("Selecione um tipo de procedimento");
+      return;
+    }
     onSubmit(formData);
-    setFormData({ nome: "", data: "", observacao: "" });
+    setFormData({ idTipoProcedimento: 0, data: "", observacao: "" });
   };
 
   const formVariants = {
@@ -95,14 +99,14 @@ export default function ProcedimentoForm({
                 Procedimento
               </label>
               <select
-                value={formData.nome}
-                onChange={(e) => setFormData({...formData, nome: e.target.value})}
+                value={formData.idTipoProcedimento}
+                onChange={(e) => setFormData({...formData, idTipoProcedimento: parseInt(e.target.value)})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 required
               >
-                <option value="">Selecione um procedimento</option>
+                <option value={0}>Selecione um procedimento</option>
                 {procedimentosDisponiveis.map(proc => (
-                  <option key={proc} value={proc}>{proc}</option>
+                  <option key={proc.id} value={proc.id}>{proc.nome}</option>
                 ))}
               </select>
             </motion.div>
