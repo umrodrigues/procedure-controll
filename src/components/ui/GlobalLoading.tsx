@@ -3,7 +3,7 @@
 import { useLoadingStore } from '@/lib/store'
 import { motion, AnimatePresence } from 'framer-motion'
 
-declare global {
+declare module 'react' {
   namespace JSX {
     interface IntrinsicElements {
       'dotlottie-wc': {
