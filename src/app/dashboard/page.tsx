@@ -16,13 +16,15 @@ import AnimatedTable from "../../components/ui/AnimatedTable";
 import NovoTipoProcedimento from "../../components/ui/NovoTipoProcedimento";
 import EmptyState from "../../components/ui/EmptyState";
 import { Procedimento as ProcedimentoDB, TipoProcedimento } from "@/lib/services";
+import { useAlert } from "@/components/ui/Alert";
 
 export default function DashboardPage() {
-  const [procedimentos] = useState<ProcedimentoDB[]>([]);
-  const [tiposProcedimentos] = useState<TipoProcedimento[]>([]);
+  const [procedimentos, setProcedimentos] = useState<ProcedimentoDB[]>([]);
+  const [tiposProcedimentos, setTiposProcedimentos] = useState<TipoProcedimento[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [mesAtual] = useState(0);
+  const { showAlert, AlertContainer } = useAlert();
 
   const totalProcedimentos = procedimentos.length;
   const procedimentosEsteMes = procedimentos.filter(p => new Date(p.dataProcedimento).getMonth() === mesAtual).length;
@@ -39,12 +41,111 @@ export default function DashboardPage() {
     .slice(0, 3)
     .map(([nome, quantidade]) => ({ nome, quantidade }));
 
-  const handleSubmit = (data: { idTipoProcedimento: number; data: string; observacao: string }) => {
-    console.log("Novo procedimento cadastrado:", data);
+  const handleSubmit = async (data: { idTipoProcedimento: number; data: string; observacao: string }) => {
+    try {
+      const response = await fetch('/api/procedimentos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...data,
+          idUsuario: 1 // Usuário logado (admin)
+        })
+      });
+
+      if (response.ok) {
+        const novoProcedimento = await response.json();
+        setProcedimentos(prev => [novoProcedimento, ...prev]);
+        setShowForm(false);
+        showAlert({
+          type: 'success',
+          title: 'Sucesso!',
+          message: 'Procedimento cadastrado com sucesso!'
+        });
+      } else {
+        showAlert({
+          type: 'error',
+          title: 'Erro!',
+          message: 'Erro ao cadastrar procedimento. Tente novamente.'
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao criar procedimento:', error);
+      showAlert({
+        type: 'error',
+        title: 'Erro!',
+        message: 'Erro de conexão. Verifique sua internet e tente novamente.'
+      });
+    }
   };
 
-  const handleNovoTipo = (novoTipo: string) => {
-    console.log("Novo tipo de procedimento adicionado:", novoTipo);
+  const handleNovoTipo = async (novoTipo: string) => {
+    try {
+      const response = await fetch('/api/tipos-procedimentos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome: novoTipo })
+      });
+
+      if (response.ok) {
+        const novoTipoCriado = await response.json();
+        setTiposProcedimentos(prev => [...prev, novoTipoCriado]);
+        showAlert({
+          type: 'success',
+          title: 'Sucesso!',
+          message: 'Tipo de procedimento criado com sucesso!'
+        });
+      } else {
+        showAlert({
+          type: 'error',
+          title: 'Erro!',
+          message: 'Erro ao criar tipo de procedimento. Tente novamente.'
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao criar tipo de procedimento:', error);
+      showAlert({
+        type: 'error',
+        title: 'Erro!',
+        message: 'Erro de conexão. Verifique sua internet e tente novamente.'
+      });
+    }
+  };
+
+  const handleEdit = async (id: number) => {
+    // TODO: Implementar modal de edição
+    console.log('Editar procedimento:', id);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (confirm('Tem certeza que deseja excluir este procedimento?')) {
+      try {
+        const response = await fetch(`/api/procedimentos/${id}`, {
+          method: 'DELETE'
+        });
+
+        if (response.ok) {
+          setProcedimentos(prev => prev.filter(p => p.id !== id));
+          showAlert({
+            type: 'success',
+            title: 'Sucesso!',
+            message: 'Procedimento excluído com sucesso!'
+          });
+        } else {
+          showAlert({
+            type: 'error',
+            title: 'Erro!',
+            message: 'Erro ao excluir procedimento. Tente novamente.'
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao excluir procedimento:', error);
+        showAlert({
+          type: 'error',
+          title: 'Erro!',
+          message: 'Erro de conexão. Verifique sua internet e tente novamente.'
+        });
+      }
+    }
   };
 
   const handleLogout = () => {
@@ -52,7 +153,47 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    setLoading(false);
+    const carregarDados = async () => {
+      try {
+        const [procedimentosRes, tiposRes] = await Promise.all([
+          fetch('/api/procedimentos'),
+          fetch('/api/tipos-procedimentos')
+        ]);
+
+        if (procedimentosRes.ok) {
+          const procedimentosData = await procedimentosRes.json();
+          setProcedimentos(procedimentosData);
+        } else {
+          showAlert({
+            type: 'error',
+            title: 'Erro!',
+            message: 'Erro ao carregar procedimentos.'
+          });
+        }
+
+        if (tiposRes.ok) {
+          const tiposData = await tiposRes.json();
+          setTiposProcedimentos(tiposData);
+        } else {
+          showAlert({
+            type: 'error',
+            title: 'Erro!',
+            message: 'Erro ao carregar tipos de procedimentos.'
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+        showAlert({
+          type: 'error',
+          title: 'Erro!',
+          message: 'Erro de conexão ao carregar dados.'
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    carregarDados();
   }, []);
 
   return (
@@ -157,6 +298,8 @@ export default function DashboardPage() {
                 observacao: p.observacao || ''
               }))}
               delay={0.5}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
             />
           ) : (
             <EmptyState
@@ -164,7 +307,15 @@ export default function DashboardPage() {
               title="Nenhum Procedimento Cadastrado"
               description="Comece cadastrando seu primeiro procedimento médico usando o formulário acima."
               actionText="Cadastrar Primeiro Procedimento"
-              onAction={() => setShowForm(true)}
+              onAction={() => {
+                setShowForm(true);
+                setTimeout(() => {
+                  const formElement = document.querySelector('[data-form="procedimento"]');
+                  if (formElement) {
+                    formElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }
+                }, 100);
+              }}
               variant="default"
             />
           )}
@@ -172,6 +323,7 @@ export default function DashboardPage() {
           </>
         )}
       </main>
+      <AlertContainer />
     </div>
   );
 }

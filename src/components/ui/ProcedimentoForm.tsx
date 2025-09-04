@@ -58,7 +58,12 @@ export default function ProcedimentoForm({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+    <div 
+      data-form="procedimento" 
+      className={`bg-white rounded-xl shadow-sm border p-6 hover:shadow-lg transition-all duration-300 ${
+        showForm ? 'border-blue-300 shadow-lg ring-2 ring-blue-100' : 'border-gray-200'
+      }`}
+    >
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-gray-900">Cadastrar Procedimento</h2>
         <motion.div

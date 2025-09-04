@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Calendar, FileText, MessageSquare } from "lucide-react";
+import { Calendar, FileText, MessageSquare, Edit, Trash2 } from "lucide-react";
 
 interface Procedimento {
   id: number;
@@ -11,9 +11,11 @@ interface Procedimento {
 interface AnimatedTableProps {
   procedimentos: Procedimento[];
   delay?: number;
+  onEdit?: (id: number) => void;
+  onDelete?: (id: number) => void;
 }
 
-export default function AnimatedTable({ procedimentos, delay = 0 }: AnimatedTableProps) {
+export default function AnimatedTable({ procedimentos, delay = 0, onEdit, onDelete }: AnimatedTableProps) {
   if (procedimentos.length === 0) {
     return (
       <motion.div
@@ -55,6 +57,9 @@ export default function AnimatedTable({ procedimentos, delay = 0 }: AnimatedTabl
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Observação
               </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Ações
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -87,6 +92,32 @@ export default function AnimatedTable({ procedimentos, delay = 0 }: AnimatedTabl
                     <span className="text-sm text-gray-900 max-w-xs truncate">
                       {procedimento.observacao || "Sem observações"}
                     </span>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center space-x-2">
+                    {onEdit && (
+                      <motion.button
+                        onClick={() => onEdit(procedimento.id)}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Editar"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </motion.button>
+                    )}
+                    {onDelete && (
+                      <motion.button
+                        onClick={() => onDelete(procedimento.id)}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Excluir"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </motion.button>
+                    )}
                   </div>
                 </td>
               </motion.tr>
