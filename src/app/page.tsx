@@ -5,6 +5,7 @@ import { motion, AnimatePresence, Variants } from "framer-motion";
 import { Eye, EyeOff, User, Lock, CheckCircle, Sparkles } from "lucide-react";
 import { usuarioService } from "@/lib/services";
 import { useAlert } from "@/components/ui/Alert";
+import { useLoadingStore } from "@/lib/store";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -13,15 +14,18 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const { showAlert, AlertContainer } = useAlert();
+  const { setLoading } = useLoadingStore();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setLoading(true, 'Fazendo login...');
 
     try {
       const usuario = await usuarioService.autenticar(username, password);
       
       if (usuario) {
+        setLoading(false);
         setTimeout(() => {
           setShowSuccess(true);
           setTimeout(() => {
@@ -35,6 +39,7 @@ export default function LoginPage() {
           message: 'Usuário ou senha incorretos!'
         });
         setIsLoading(false);
+        setLoading(false);
       }
     } catch (error) {
       console.error('💥 Erro na autenticação:', error);
@@ -44,6 +49,7 @@ export default function LoginPage() {
         message: 'Erro ao fazer login. Tente novamente.'
       });
       setIsLoading(false);
+      setLoading(false);
     }
   };
 

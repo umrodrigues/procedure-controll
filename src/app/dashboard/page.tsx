@@ -17,14 +17,16 @@ import NovoTipoProcedimento from "../../components/ui/NovoTipoProcedimento";
 import EmptyState from "../../components/ui/EmptyState";
 import { Procedimento as ProcedimentoDB, TipoProcedimento } from "@/lib/services";
 import { useAlert } from "@/components/ui/Alert";
+import { useLoadingStore } from "@/lib/store";
 
 export default function DashboardPage() {
   const [procedimentos, setProcedimentos] = useState<ProcedimentoDB[]>([]);
   const [tiposProcedimentos, setTiposProcedimentos] = useState<TipoProcedimento[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLocalLoading] = useState(true);
   const [mesAtual] = useState(0);
   const { showAlert, AlertContainer } = useAlert();
+  const { setLoading } = useLoadingStore();
 
   const totalProcedimentos = procedimentos.length;
   const procedimentosEsteMes = procedimentos.filter(p => new Date(p.dataProcedimento).getMonth() === mesAtual).length;
@@ -42,6 +44,7 @@ export default function DashboardPage() {
     .map(([nome, quantidade]) => ({ nome, quantidade }));
 
   const handleSubmit = async (data: { idTipoProcedimento: number; data: string; observacao: string }) => {
+    setLoading(true, 'Cadastrando procedimento...');
     try {
       const response = await fetch('/api/procedimentos', {
         method: 'POST',
@@ -75,10 +78,13 @@ export default function DashboardPage() {
         title: 'Erro!',
         message: 'Erro de conexão. Verifique sua internet e tente novamente.'
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleNovoTipo = async (novoTipo: string) => {
+    setLoading(true, 'Criando tipo de procedimento...');
     try {
       const response = await fetch('/api/tipos-procedimentos', {
         method: 'POST',
@@ -108,6 +114,8 @@ export default function DashboardPage() {
         title: 'Erro!',
         message: 'Erro de conexão. Verifique sua internet e tente novamente.'
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -118,6 +126,7 @@ export default function DashboardPage() {
 
   const handleDelete = async (id: number) => {
     if (confirm('Tem certeza que deseja excluir este procedimento?')) {
+      setLoading(true, 'Excluindo procedimento...');
       try {
         const response = await fetch(`/api/procedimentos/${id}`, {
           method: 'DELETE'
@@ -144,6 +153,8 @@ export default function DashboardPage() {
           title: 'Erro!',
           message: 'Erro de conexão. Verifique sua internet e tente novamente.'
         });
+      } finally {
+        setLocalLoading(false);
       }
     }
   };
@@ -154,6 +165,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const carregarDados = async () => {
+      setLoading(true, 'Carregando dados...');
       try {
         const [procedimentosRes, tiposRes] = await Promise.all([
           fetch('/api/procedimentos'),
@@ -190,6 +202,7 @@ export default function DashboardPage() {
         });
       } finally {
         setLoading(false);
+        setLocalLoading(false);
       }
     };
 
