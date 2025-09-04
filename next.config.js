@@ -8,14 +8,12 @@ const nextConfig = {
     // Desabilita a verificação de TypeScript durante o build
     ignoreBuildErrors: true,
   },
-  // Força o uso do Webpack em vez do Turbopack em produção
-  experimental: {
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
+  // Configuração do Turbopack (apenas para desenvolvimento)
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
       },
     },
   },
