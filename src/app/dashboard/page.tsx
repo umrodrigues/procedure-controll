@@ -15,16 +15,24 @@ import ProcedimentoForm from "../../components/ui/ProcedimentoForm";
 import AnimatedTable from "../../components/ui/AnimatedTable";
 import NovoTipoProcedimento from "../../components/ui/NovoTipoProcedimento";
 import EmptyState from "../../components/ui/EmptyState";
+import EditProcedimentoModal from "../../components/ui/EditProcedimentoModal";
 import { Procedimento as ProcedimentoDB, TipoProcedimento } from "@/lib/services";
+
+type ProcedimentoFromAPI = Omit<ProcedimentoDB, 'dataProcedimento' | 'dataCriacao' | 'dataAtualizacao'> & {
+  dataProcedimento: string;
+  dataCriacao: string;
+  dataAtualizacao: string;
+};
 import { useAlert } from "@/components/ui/Alert";
 import { useLoadingStore } from "@/lib/store";
 
 export default function DashboardPage() {
-  const [procedimentos, setProcedimentos] = useState<ProcedimentoDB[]>([]);
+  const [procedimentos, setProcedimentos] = useState<ProcedimentoFromAPI[]>([]);
   const [tiposProcedimentos, setTiposProcedimentos] = useState<TipoProcedimento[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLocalLoading] = useState(true);
   const [mesAtual] = useState(0);
+  const [editModal, setEditModal] = useState<{ isOpen: boolean; procedimento: { id: number; nome: string; data: string; observacao: string } | null }>({ isOpen: false, procedimento: null });
   const { showAlert, AlertContainer } = useAlert();
   const { setLoading } = useLoadingStore();
 
@@ -120,8 +128,54 @@ export default function DashboardPage() {
   };
 
   const handleEdit = async (id: number) => {
-    // TODO: Implementar modal de edição
-    console.log('Editar procedimento:', id);
+    const procedimento = procedimentos.find(p => p.id === id);
+    if (procedimento) {
+      setEditModal({
+        isOpen: true,
+        procedimento: {
+          id: procedimento.id,
+          nome: procedimento.tipoProcedimento.nome,
+          data: new Date(procedimento.dataProcedimento).toISOString().split('T')[0],
+          observacao: procedimento.observacao || ''
+        }
+      });
+    }
+  };
+
+  const handleSaveEdit = async (id: number, data: { idTipoProcedimento: number; data: string; observacao: string }) => {
+    setLoading(true, 'Salvando alterações...');
+    try {
+      const response = await fetch(`/api/procedimentos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (response.ok) {
+        const procedimentoAtualizado = await response.json();
+        setProcedimentos(prev => prev.map(p => p.id === id ? procedimentoAtualizado : p));
+        showAlert({
+          type: 'success',
+          title: 'Sucesso!',
+          message: 'Procedimento atualizado com sucesso!'
+        });
+      } else {
+        showAlert({
+          type: 'error',
+          title: 'Erro!',
+          message: 'Erro ao atualizar procedimento. Tente novamente.'
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar procedimento:', error);
+      showAlert({
+        type: 'error',
+        title: 'Erro!',
+        message: 'Erro de conexão. Verifique sua internet e tente novamente.'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -307,7 +361,7 @@ export default function DashboardPage() {
               procedimentos={procedimentos.map(p => ({
                 id: p.id,
                 nome: p.tipoProcedimento.nome,
-                data: p.dataProcedimento.toISOString().split('T')[0],
+                data: new Date(p.dataProcedimento).toISOString().split('T')[0],
                 observacao: p.observacao || ''
               }))}
               delay={0.5}
@@ -336,6 +390,15 @@ export default function DashboardPage() {
           </>
         )}
       </main>
+      
+      <EditProcedimentoModal
+        isOpen={editModal.isOpen}
+        onClose={() => setEditModal({ isOpen: false, procedimento: null })}
+        procedimento={editModal.procedimento}
+        tiposProcedimentos={tiposProcedimentos.map(t => ({ id: t.id, nome: t.nome }))}
+        onSave={handleSaveEdit}
+      />
+      
       <AlertContainer />
     </div>
   );
