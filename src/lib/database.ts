@@ -7,7 +7,7 @@ const globalForPrisma = globalThis as unknown as {
 let prisma: PrismaClient
 
 const isBuildTime = process.env.NODE_ENV === 'production' && 
-  (process.env.VERCEL === '1' || !process.env.DATABASE_URL)
+  process.env.VERCEL === '1' && !process.env.DATABASE_URL
 
 if (isBuildTime) {
   prisma = {} as PrismaClient

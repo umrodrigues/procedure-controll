@@ -2,7 +2,7 @@ import { prisma } from './database'
 import * as bcrypt from 'bcryptjs'
 
 const isBuildTime = process.env.NODE_ENV === 'production' && 
-  (process.env.VERCEL === '1' || !process.env.DATABASE_URL)
+  process.env.VERCEL === '1' && !process.env.DATABASE_URL
 
 export interface Procedimento {
   id: number
