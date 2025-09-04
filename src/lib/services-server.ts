@@ -1,5 +1,5 @@
 import { prisma } from './database'
-import bcrypt from 'bcryptjs'
+import * as bcrypt from 'bcryptjs'
 
 const isBuildTime = process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL
 
@@ -39,7 +39,7 @@ export interface Usuario {
 
 export const procedimentoService = {
   async listarTodos(): Promise<Procedimento[]> {
-    if (isBuildTime) return []
+    if (isBuildTime || !prisma || !prisma.procedimento) return []
     
     return await prisma.procedimento.findMany({
       include: {
@@ -58,7 +58,7 @@ export const procedimentoService = {
     dataProcedimento: Date
     observacao?: string | null
   }): Promise<Procedimento> {
-    if (isBuildTime) throw new Error('Build time - database not available')
+    if (isBuildTime || !prisma || !prisma.procedimento) throw new Error('Build time - database not available')
     
     return await prisma.procedimento.create({
       data: dados,
@@ -70,13 +70,13 @@ export const procedimentoService = {
   },
 
   async contarTotal(): Promise<number> {
-    if (isBuildTime) return 0
+    if (isBuildTime || !prisma || !prisma.procedimento) return 0
     
     return await prisma.procedimento.count()
   },
 
   async topProcedimentos(limite: number = 3): Promise<Array<{ tipo: string; quantidade: number }>> {
-    if (isBuildTime) return []
+    if (isBuildTime || !prisma || !prisma.procedimento) return []
     
     const resultado = await prisma.procedimento.groupBy({
       by: ['idTipoProcedimento'],
@@ -111,7 +111,7 @@ export const procedimentoService = {
 
 export const tipoProcedimentoService = {
   async listarTodos(): Promise<TipoProcedimento[]> {
-    if (isBuildTime) return []
+    if (isBuildTime || !prisma || !prisma.tipoProcedimento) return []
     
     return await prisma.tipoProcedimento.findMany({
       where: { ativo: true },
@@ -120,7 +120,7 @@ export const tipoProcedimentoService = {
   },
 
   async criar(nome: string, descricao?: string | null): Promise<TipoProcedimento> {
-    if (isBuildTime) throw new Error('Build time - database not available')
+    if (isBuildTime || !prisma || !prisma.tipoProcedimento) throw new Error('Build time - database not available')
     
     return await prisma.tipoProcedimento.create({
       data: { nome, descricao }
@@ -128,7 +128,7 @@ export const tipoProcedimentoService = {
   },
 
   async verificarExistente(nome: string): Promise<boolean> {
-    if (isBuildTime) return false
+    if (isBuildTime || !prisma || !prisma.tipoProcedimento) return false
     
     const existente = await prisma.tipoProcedimento.findFirst({
       where: { nome: { equals: nome, mode: 'insensitive' } }
@@ -137,7 +137,7 @@ export const tipoProcedimentoService = {
   },
 
   async buscarPorId(id: number): Promise<TipoProcedimento | null> {
-    if (isBuildTime) return null
+    if (isBuildTime || !prisma || !prisma.tipoProcedimento) return null
     
     return await prisma.tipoProcedimento.findUnique({
       where: { id }
@@ -147,31 +147,36 @@ export const tipoProcedimentoService = {
 
 export const usuarioService = {
   async autenticar(login: string, senha: string): Promise<Usuario | null> {
-    if (isBuildTime) return null
+    if (isBuildTime || !prisma || !prisma.usuario) return null
     
-    const usuario = await prisma.usuario.findFirst({
-      where: { 
-        OR: [
-          { email: login.toLowerCase() },
-          { nome: login }
-        ],
-        ativo: true
-      }
-    })
+    try {
+      const usuario = await prisma.usuario.findFirst({
+        where: { 
+          OR: [
+            { email: login.toLowerCase() },
+            { nome: login }
+          ],
+          ativo: true
+        }
+      })
 
-    if (!usuario) return null
+      if (!usuario) return null
 
-    const senhaCorreta = await bcrypt.compare(senha, usuario.senhaHash)
-    return senhaCorreta ? {
-      id: usuario.id,
-      nome: usuario.nome,
-      email: usuario.email,
-      ativo: usuario.ativo
-    } : null
+      const senhaCorreta = await bcrypt.compare(senha, usuario.senhaHash)
+      return senhaCorreta ? {
+        id: usuario.id,
+        nome: usuario.nome,
+        email: usuario.email,
+        ativo: usuario.ativo
+      } : null
+    } catch (error) {
+      console.error('Erro na autenticação:', error)
+      return null
+    }
   },
 
   async buscarPorId(id: number): Promise<Usuario | null> {
-    if (isBuildTime) return null
+    if (isBuildTime || !prisma || !prisma.usuario) return null
     
     const usuario = await prisma.usuario.findUnique({
       where: { id }
