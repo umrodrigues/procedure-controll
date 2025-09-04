@@ -35,6 +35,7 @@ export default function DashboardPage() {
   const [mesAtual] = useState(0);
   const [editModal, setEditModal] = useState<{ isOpen: boolean; procedimento: { id: number; nome: string; data: string; observacao: string } | null }>({ isOpen: false, procedimento: null });
   const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; id: number | null; message: string }>({ isOpen: false, id: null, message: '' });
+  const [confirmTipoModal, setConfirmTipoModal] = useState<{ isOpen: boolean; id: number | null; message: string }>({ isOpen: false, id: null, message: '' });
   const { showAlert, AlertContainer } = useAlert();
   const { setLoading } = useLoadingStore();
   
@@ -125,6 +126,90 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error('Erro ao criar tipo de procedimento:', error);
+      showAlert({
+        type: 'error',
+        title: 'Erro!',
+        message: 'Erro de conexão. Verifique sua internet e tente novamente.'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditarTipo = async (id: number, nome: string, descricao?: string) => {
+    setLoading(true, 'Atualizando tipo de procedimento...');
+    try {
+      const response = await fetch('/api/tipos-procedimentos', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, nome, descricao })
+      });
+
+      if (response.ok) {
+        const tipoAtualizado = await response.json();
+        setTiposProcedimentos(prev => 
+          prev.map(tipo => tipo.id === id ? tipoAtualizado : tipo)
+        );
+        showAlert({
+          type: 'success',
+          title: 'Sucesso!',
+          message: 'Tipo de procedimento atualizado com sucesso!'
+        });
+      } else {
+        showAlert({
+          type: 'error',
+          title: 'Erro!',
+          message: 'Erro ao atualizar tipo de procedimento. Tente novamente.'
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar tipo de procedimento:', error);
+      showAlert({
+        type: 'error',
+        title: 'Erro!',
+        message: 'Erro de conexão. Verifique sua internet e tente novamente.'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExcluirTipo = (id: number) => {
+    const tipo = tiposProcedimentos.find(t => t.id === id);
+    const nomeTipo = tipo?.nome || 'este tipo de procedimento';
+    
+    setConfirmTipoModal({
+      isOpen: true,
+      id: id,
+      message: `Tem certeza que deseja excluir "${nomeTipo}"? Esta ação não pode ser desfeita.`
+    });
+  };
+
+  const confirmDeleteTipo = async () => {
+    if (!confirmTipoModal.id) return;
+    
+    setLoading(true, 'Excluindo tipo de procedimento...');
+    try {
+      const response = await fetch(`/api/tipos-procedimentos?id=${confirmTipoModal.id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        setTiposProcedimentos(prev => prev.filter(tipo => tipo.id !== confirmTipoModal.id));
+        showAlert({
+          type: 'success',
+          title: 'Sucesso!',
+          message: 'Tipo de procedimento excluído com sucesso!'
+        });
+      } else {
+        showAlert({
+          type: 'error',
+          title: 'Erro!',
+          message: 'Erro ao excluir tipo de procedimento. Tente novamente.'
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao excluir tipo de procedimento:', error);
       showAlert({
         type: 'error',
         title: 'Erro!',
@@ -371,7 +456,9 @@ export default function DashboardPage() {
         <div className="mb-6 sm:mb-8">
           <NovoTipoProcedimento
             onNovoTipo={handleNovoTipo}
-            procedimentosExistentes={tiposProcedimentos.map(t => t.nome)}
+            procedimentosExistentes={tiposProcedimentos}
+            onEditarTipo={handleEditarTipo}
+            onExcluirTipo={handleExcluirTipo}
           />
         </div>
 
@@ -425,6 +512,17 @@ export default function DashboardPage() {
         onConfirm={confirmDelete}
         title="Confirmar Exclusão"
         message={confirmModal.message}
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        type="danger"
+      />
+      
+      <ConfirmModal
+        isOpen={confirmTipoModal.isOpen}
+        onClose={() => setConfirmTipoModal({ isOpen: false, id: null, message: '' })}
+        onConfirm={confirmDeleteTipo}
+        title="Confirmar Exclusão"
+        message={confirmTipoModal.message}
         confirmText="Excluir"
         cancelText="Cancelar"
         type="danger"

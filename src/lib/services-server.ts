@@ -143,6 +143,24 @@ export const tipoProcedimentoService = {
     return await prisma.tipoProcedimento.findUnique({
       where: { id }
     })
+  },
+
+  async atualizar(id: number, nome: string, descricao?: string | null): Promise<TipoProcedimento> {
+    if (isBuildTime || !prisma || !prisma.tipoProcedimento) throw new Error('Build time - database not available')
+    
+    return await prisma.tipoProcedimento.update({
+      where: { id },
+      data: { nome, descricao }
+    })
+  },
+
+  async excluir(id: number): Promise<void> {
+    if (isBuildTime || !prisma || !prisma.tipoProcedimento) throw new Error('Build time - database not available')
+    
+    await prisma.tipoProcedimento.update({
+      where: { id },
+      data: { ativo: false }
+    })
   }
 }
 
