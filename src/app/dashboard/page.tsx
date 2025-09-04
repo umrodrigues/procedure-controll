@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { 
   TrendingUp, 
@@ -16,6 +16,7 @@ import AnimatedTable from "../../components/ui/AnimatedTable";
 import NovoTipoProcedimento from "../../components/ui/NovoTipoProcedimento";
 import EmptyState from "../../components/ui/EmptyState";
 import EditProcedimentoModal from "../../components/ui/EditProcedimentoModal";
+import ConfirmModal from "../../components/ui/ConfirmModal";
 import { Procedimento as ProcedimentoDB, TipoProcedimento } from "@/lib/services";
 
 type ProcedimentoFromAPI = Omit<ProcedimentoDB, 'dataProcedimento' | 'dataCriacao' | 'dataAtualizacao'> & {
@@ -33,6 +34,7 @@ export default function DashboardPage() {
   const [loading, setLocalLoading] = useState(true);
   const [mesAtual] = useState(0);
   const [editModal, setEditModal] = useState<{ isOpen: boolean; procedimento: { id: number; nome: string; data: string; observacao: string } | null }>({ isOpen: false, procedimento: null });
+  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; id: number | null; message: string }>({ isOpen: false, id: null, message: '' });
   const { showAlert, AlertContainer } = useAlert();
   const { setLoading } = useLoadingStore();
 
@@ -178,38 +180,50 @@ export default function DashboardPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (confirm('Tem certeza que deseja excluir este procedimento?')) {
-      setLoading(true, 'Excluindo procedimento...');
-      try {
-        const response = await fetch(`/api/procedimentos/${id}`, {
-          method: 'DELETE'
-        });
+  const handleDelete = (id: number) => {
+    const procedimento = procedimentos.find(p => p.id === id);
+    const nomeProcedimento = procedimento?.tipoProcedimento.nome || 'este procedimento';
+    
+    setConfirmModal({
+      isOpen: true,
+      id: id,
+      message: `Tem certeza que deseja excluir ${nomeProcedimento}? Esta ação não pode ser desfeita.`
+    });
+  };
 
-        if (response.ok) {
-          setProcedimentos(prev => prev.filter(p => p.id !== id));
-          showAlert({
-            type: 'success',
-            title: 'Sucesso!',
-            message: 'Procedimento excluído com sucesso!'
-          });
-        } else {
-          showAlert({
-            type: 'error',
-            title: 'Erro!',
-            message: 'Erro ao excluir procedimento. Tente novamente.'
-          });
-        }
-      } catch (error) {
-        console.error('Erro ao excluir procedimento:', error);
+  const confirmDelete = async () => {
+    if (!confirmModal.id) return;
+    
+    setLoading(true, 'Excluindo procedimento...');
+    try {
+      const response = await fetch(`/api/procedimentos/${confirmModal.id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        setProcedimentos(prev => prev.filter(p => p.id !== confirmModal.id));
+        showAlert({
+          type: 'success',
+          title: 'Sucesso!',
+          message: 'Procedimento excluído com sucesso!'
+        });
+      } else {
+        const errorData = await response.json();
         showAlert({
           type: 'error',
           title: 'Erro!',
-          message: 'Erro de conexão. Verifique sua internet e tente novamente.'
+          message: errorData.message || 'Erro ao excluir procedimento. Tente novamente.'
         });
-      } finally {
-        setLocalLoading(false);
       }
+    } catch (error) {
+      console.error('Erro ao excluir procedimento:', error);
+      showAlert({
+        type: 'error',
+        title: 'Erro!',
+        message: 'Erro de conexão. Verifique sua internet e tente novamente.'
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -217,51 +231,51 @@ export default function DashboardPage() {
     window.location.href = "/";
   };
 
-  useEffect(() => {
-    const carregarDados = async () => {
-      setLoading(true, 'Carregando dados...');
-      try {
-        const [procedimentosRes, tiposRes] = await Promise.all([
-          fetch('/api/procedimentos'),
-          fetch('/api/tipos-procedimentos')
-        ]);
+  const carregarDados = useCallback(async () => {
+    setLoading(true, 'Carregando dados...');
+    try {
+      const [procedimentosRes, tiposRes] = await Promise.all([
+        fetch('/api/procedimentos'),
+        fetch('/api/tipos-procedimentos')
+      ]);
 
-        if (procedimentosRes.ok) {
-          const procedimentosData = await procedimentosRes.json();
-          setProcedimentos(procedimentosData);
-        } else {
-          showAlert({
-            type: 'error',
-            title: 'Erro!',
-            message: 'Erro ao carregar procedimentos.'
-          });
-        }
-
-        if (tiposRes.ok) {
-          const tiposData = await tiposRes.json();
-          setTiposProcedimentos(tiposData);
-        } else {
-          showAlert({
-            type: 'error',
-            title: 'Erro!',
-            message: 'Erro ao carregar tipos de procedimentos.'
-          });
-        }
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error);
+      if (procedimentosRes.ok) {
+        const procedimentosData = await procedimentosRes.json();
+        setProcedimentos(procedimentosData);
+      } else {
         showAlert({
           type: 'error',
           title: 'Erro!',
-          message: 'Erro de conexão ao carregar dados.'
+          message: 'Erro ao carregar procedimentos.'
         });
-      } finally {
-        setLoading(false);
-        setLocalLoading(false);
       }
-    };
 
+      if (tiposRes.ok) {
+        const tiposData = await tiposRes.json();
+        setTiposProcedimentos(tiposData);
+      } else {
+        showAlert({
+          type: 'error',
+          title: 'Erro!',
+          message: 'Erro ao carregar tipos de procedimentos.'
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+      showAlert({
+        type: 'error',
+        title: 'Erro!',
+        message: 'Erro de conexão ao carregar dados.'
+      });
+    } finally {
+      setLoading(false);
+      setLocalLoading(false);
+    }
+  }, [setLoading, showAlert]);
+
+  useEffect(() => {
     carregarDados();
-  }, []);
+  }, [carregarDados]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -397,6 +411,17 @@ export default function DashboardPage() {
         procedimento={editModal.procedimento}
         tiposProcedimentos={tiposProcedimentos.map(t => ({ id: t.id, nome: t.nome }))}
         onSave={handleSaveEdit}
+      />
+      
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, id: null, message: '' })}
+        onConfirm={confirmDelete}
+        title="Confirmar Exclusão"
+        message={confirmModal.message}
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        type="danger"
       />
       
       <AlertContainer />

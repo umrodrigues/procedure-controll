@@ -24,7 +24,6 @@ export default function ProcedimentoForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.idTipoProcedimento === 0) {
-      alert("Selecione um tipo de procedimento");
       return;
     }
     onSubmit(formData);
