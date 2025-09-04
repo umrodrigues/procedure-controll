@@ -13,8 +13,11 @@ Adicione as seguintes variáveis ao seu arquivo `.env.local`:
 EMAIL_USER=luarodrigues1996@gmail.com
 EMAIL_PASS=ssnz ffrg lldc cwur
 
-# App Configuration (opcional)
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+# App Configuration
+NEXT_PUBLIC_APP_URL=https://procedure-controll.vercel.app
+
+# Cron Job Security
+CRON_SECRET=lembrete-procedimentos-2025-secret-key
 ```
 
 ### Instalação das Dependências
@@ -30,7 +33,8 @@ npx prisma db push
 ## Como Usar
 
 ### 1. Endpoint API
-- **GET/POST**: `/api/lembrete`
+- **GET/POST**: `/api/lembrete` - Endpoint manual
+- **GET**: `/api/cron` - Endpoint para cron jobs (com autenticação)
 - Verifica se há procedimentos hoje e envia email se necessário
 
 ### 2. Script Manual
@@ -38,12 +42,19 @@ npx prisma db push
 node scripts/lembrete-daily.js
 ```
 
-### 3. Agendamento Automático (Cron)
-Para executar automaticamente todos os dias às 19h:
-```bash
-# Adicione ao crontab
-0 19 * * * cd /var/www/projetos\ pessoais/procedure-controll && node scripts/lembrete-daily.js
+### 3. Agendamento Automático (Vercel Cron Jobs)
+O sistema usa cron jobs nativos da Vercel configurados no `vercel.json`:
+```json
+{
+  "crons": [
+    {
+      "path": "/api/cron",
+      "schedule": "0 19 * * *"
+    }
+  ]
+}
 ```
+Executa automaticamente todos os dias às 19:00 (7 PM).
 
 ## Funcionamento
 
