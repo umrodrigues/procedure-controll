@@ -3,17 +3,11 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
-  Plus, 
   TrendingUp, 
-  Calendar, 
-  FileText, 
   LogOut,
   Activity,
   BarChart3,
-  ClipboardList,
-  Inbox,
-  CalendarDays,
-  Database
+  Inbox
 } from "lucide-react";
 import StatCard from "../../components/ui/StatCard";
 import RankingCard from "../../components/ui/RankingCard";
@@ -22,16 +16,13 @@ import AnimatedTable from "../../components/ui/AnimatedTable";
 import NovoTipoProcedimento from "../../components/ui/NovoTipoProcedimento";
 import EmptyState from "../../components/ui/EmptyState";
 import { Procedimento as ProcedimentoDB, TipoProcedimento } from "@/lib/services";
-import { useAlert } from "@/components/ui/Alert";
-
-
 
 export default function DashboardPage() {
-  const [procedimentos, setProcedimentos] = useState<ProcedimentoDB[]>([]);
-  const [tiposProcedimentos, setTiposProcedimentos] = useState<TipoProcedimento[]>([]);
+  const [procedimentos] = useState<ProcedimentoDB[]>([]);
+  const [tiposProcedimentos] = useState<TipoProcedimento[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [mesAtual, setMesAtual] = useState(0);
+  const [mesAtual] = useState(0);
 
   const totalProcedimentos = procedimentos.length;
   const procedimentosEsteMes = procedimentos.filter(p => new Date(p.dataProcedimento).getMonth() === mesAtual).length;
