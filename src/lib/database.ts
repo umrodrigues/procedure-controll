@@ -6,31 +6,39 @@ const globalForPrisma = globalThis as unknown as {
 
 let prisma: PrismaClient
 
-const isBuildTime = process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL
+const isBuildTime = process.env.NODE_ENV === 'production' && 
+  (process.env.VERCEL === '1' || !process.env.DATABASE_URL)
 
 if (isBuildTime) {
   prisma = {} as PrismaClient
-} else if (process.env.NODE_ENV === 'production') {
-  prisma = new PrismaClient({
-    log: ['error'],
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL,
-      },
-    },
-  })
 } else {
-  if (!globalForPrisma.prisma) {
-    globalForPrisma.prisma = new PrismaClient({
-      log: ['query', 'error', 'warn'],
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL,
+  try {
+    if (process.env.NODE_ENV === 'production') {
+      prisma = new PrismaClient({
+        log: ['error'],
+        datasources: {
+          db: {
+            url: process.env.DATABASE_URL,
+          },
         },
-      },
-    })
+      })
+    } else {
+      if (!globalForPrisma.prisma) {
+        globalForPrisma.prisma = new PrismaClient({
+          log: ['query', 'error', 'warn'],
+          datasources: {
+            db: {
+              url: process.env.DATABASE_URL,
+            },
+          },
+        })
+      }
+      prisma = globalForPrisma.prisma
+    }
+  } catch (error) {
+    console.error('Erro ao inicializar Prisma:', error)
+    prisma = {} as PrismaClient
   }
-  prisma = globalForPrisma.prisma
 }
 
 export { prisma }
