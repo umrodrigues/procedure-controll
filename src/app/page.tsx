@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { Eye, EyeOff, User, Lock, CheckCircle, Sparkles } from "lucide-react";
-import { usuarioService } from "@/lib/services";
 import { useAlert } from "@/components/ui/Alert";
 import { useLoadingStore } from "@/lib/store";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -15,6 +16,14 @@ export default function LoginPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const { showAlert, AlertContainer } = useAlert();
   const { setLoading } = useLoadingStore();
+  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, authLoading, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,14 +31,14 @@ export default function LoginPage() {
     setLoading(true, 'Fazendo login...');
 
     try {
-      const usuario = await usuarioService.autenticar(username, password);
+      const success = await login(username, password);
       
-      if (usuario) {
+      if (success) {
         setLoading(false);
         setTimeout(() => {
           setShowSuccess(true);
           setTimeout(() => {
-            window.location.href = "/dashboard";
+            router.push("/dashboard");
           }, 1500);
         }, 1000);
       } else {
@@ -77,6 +86,17 @@ export default function LoginPage() {
       }
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p className="text-white">Verificando autenticação...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-2 sm:p-4 md:p-6 lg:p-8 relative overflow-hidden">

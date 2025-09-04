@@ -17,7 +17,10 @@ import NovoTipoProcedimento from "../../components/ui/NovoTipoProcedimento";
 import EmptyState from "../../components/ui/EmptyState";
 import EditProcedimentoModal from "../../components/ui/EditProcedimentoModal";
 import ConfirmModal from "../../components/ui/ConfirmModal";
+import AuthGuard from "../../components/AuthGuard";
+import SessionExpiredModal from "../../components/SessionExpiredModal";
 import { Procedimento as ProcedimentoDB, TipoProcedimento } from "@/lib/services";
+import { useAuth } from "@/contexts/AuthContext";
 
 type ProcedimentoFromAPI = Omit<ProcedimentoDB, 'dataProcedimento' | 'dataCriacao' | 'dataAtualizacao'> & {
   dataProcedimento: string;
@@ -32,12 +35,14 @@ export default function DashboardPage() {
   const [tiposProcedimentos, setTiposProcedimentos] = useState<TipoProcedimento[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLocalLoading] = useState(true);
+  const [showSessionExpired, setShowSessionExpired] = useState(false);
   const mesAtual = new Date().getMonth();
   const [editModal, setEditModal] = useState<{ isOpen: boolean; procedimento: { id: number; nome: string; data: string; observacao: string } | null }>({ isOpen: false, procedimento: null });
   const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; id: number | null; message: string }>({ isOpen: false, id: null, message: '' });
   const [confirmTipoModal, setConfirmTipoModal] = useState<{ isOpen: boolean; id: number | null; message: string }>({ isOpen: false, id: null, message: '' });
   const { showAlert, AlertContainer } = useAlert();
   const { setLoading } = useLoadingStore();
+  const { logout } = useAuth();
   
   const setLoadingRef = useRef(setLoading);
   const showAlertRef = useRef(showAlert);
@@ -319,6 +324,13 @@ export default function DashboardPage() {
   };
 
   const handleLogout = () => {
+    logout();
+    window.location.href = "/";
+  };
+
+
+  const handleRedirectToLogin = () => {
+    logout();
     window.location.href = "/";
   };
 
@@ -369,7 +381,8 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <AuthGuard>
+      <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <header className="bg-white/80 backdrop-blur-xl shadow-lg border-b border-white/20">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
           <div className="flex justify-between items-center h-16 sm:h-20">
@@ -529,6 +542,13 @@ export default function DashboardPage() {
       />
       
       <AlertContainer />
-    </div>
+      
+      <SessionExpiredModal
+        isOpen={showSessionExpired}
+        onClose={() => setShowSessionExpired(false)}
+        onRedirect={handleRedirectToLogin}
+      />
+      </div>
+    </AuthGuard>
   );
 }
