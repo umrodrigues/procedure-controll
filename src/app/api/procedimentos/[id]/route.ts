@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database'
+import { tipoProcedimentoService } from '@/lib/services-server'
 
 export async function PUT(
   request: NextRequest,
@@ -9,7 +10,6 @@ export async function PUT(
     const { idTipoProcedimento, data, observacao } = await request.json()
     const { id } = await params
     
-    // Verificar se o procedimento existe
     const procedimentoExiste = await prisma.procedimento.findUnique({
       where: { id: parseInt(id) }
     })
@@ -20,10 +20,7 @@ export async function PUT(
       }, { status: 404 })
     }
     
-    // Verificar se o tipo de procedimento existe
-    const tipoExiste = await prisma.tipoProcedimento.findUnique({
-      where: { id: idTipoProcedimento }
-    })
+    const tipoExiste = await tipoProcedimentoService.buscarPorId(idTipoProcedimento)
     
     if (!tipoExiste) {
       return NextResponse.json({ 
@@ -61,7 +58,6 @@ export async function DELETE(
   try {
     const { id } = await params
     
-    // Verificar se o procedimento existe
     const procedimentoExiste = await prisma.procedimento.findUnique({
       where: { id: parseInt(id) }
     })

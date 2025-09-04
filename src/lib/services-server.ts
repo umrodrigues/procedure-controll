@@ -6,13 +6,13 @@ export interface Procedimento {
   idTipoProcedimento: number
   idUsuario: number
   dataProcedimento: Date
-  observacao?: string
+  observacao: string | null
   dataCriacao: Date
   dataAtualizacao: Date
   tipoProcedimento: {
     id: number
     nome: string
-    descricao?: string
+    descricao: string | null
   }
   usuario: {
     id: number
@@ -24,7 +24,7 @@ export interface Procedimento {
 export interface TipoProcedimento {
   id: number
   nome: string
-  descricao?: string
+  descricao: string | null
   ativo: boolean
 }
 
@@ -52,7 +52,7 @@ export const procedimentoService = {
     idTipoProcedimento: number
     idUsuario: number
     dataProcedimento: Date
-    observacao?: string
+    observacao?: string | null
   }): Promise<Procedimento> {
     return await prisma.procedimento.create({
       data: dados,
@@ -107,7 +107,7 @@ export const tipoProcedimentoService = {
     })
   },
 
-  async criar(nome: string, descricao?: string): Promise<TipoProcedimento> {
+  async criar(nome: string, descricao?: string | null): Promise<TipoProcedimento> {
     return await prisma.tipoProcedimento.create({
       data: { nome, descricao }
     })
@@ -118,6 +118,12 @@ export const tipoProcedimentoService = {
       where: { nome: { equals: nome, mode: 'insensitive' } }
     })
     return !!existente
+  },
+
+  async buscarPorId(id: number): Promise<TipoProcedimento | null> {
+    return await prisma.tipoProcedimento.findUnique({
+      where: { id }
+    })
   }
 }
 
@@ -137,6 +143,19 @@ export const usuarioService = {
 
     const senhaCorreta = await bcrypt.compare(senha, usuario.senhaHash)
     return senhaCorreta ? {
+      id: usuario.id,
+      nome: usuario.nome,
+      email: usuario.email,
+      ativo: usuario.ativo
+    } : null
+  },
+
+  async buscarPorId(id: number): Promise<Usuario | null> {
+    const usuario = await prisma.usuario.findUnique({
+      where: { id }
+    })
+    
+    return usuario ? {
       id: usuario.id,
       nome: usuario.nome,
       email: usuario.email,

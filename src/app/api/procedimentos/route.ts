@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { procedimentoService } from '@/lib/services-server'
-import { prisma } from '@/lib/database'
+import { procedimentoService, tipoProcedimentoService, usuarioService } from '@/lib/services-server'
 
 export async function GET() {
   try {
@@ -26,10 +25,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Verificar se o tipo de procedimento existe
-    const tipoExiste = await prisma.tipoProcedimento.findUnique({
-      where: { id: idTipoProcedimento }
-    })
+    const tipoExiste = await tipoProcedimentoService.buscarPorId(idTipoProcedimento)
     
     if (!tipoExiste) {
       return NextResponse.json({ 
@@ -38,10 +34,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Verificar se o usuário existe
-    const usuarioExiste = await prisma.usuario.findUnique({
-      where: { id: idUsuario }
-    })
+    const usuarioExiste = await usuarioService.buscarPorId(idUsuario)
     
     if (!usuarioExiste) {
       return NextResponse.json({ 
@@ -50,7 +43,6 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
     
-    // Validar e converter a data
     console.log('Data recebida:', data, 'Tipo:', typeof data);
     const dataProcedimento = new Date(data);
     console.log('Data convertida:', dataProcedimento, 'É válida:', !isNaN(dataProcedimento.getTime()));

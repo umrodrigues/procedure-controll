@@ -28,14 +28,6 @@ export default function GlobalLoading() {
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
               className="w-24 h-24 mx-auto mb-6"
             >
-              {/* @ts-expect-error - dotlottie-wc custom element not recognized by TypeScript */}
-              <dotlottie-wc
-                src="https://lottie.host/46958730-920a-4cbf-bef9-d4c409ef1a4f/R4sSn2hvWt.lottie"
-                style={{ width: '100%', height: '100%' }}
-                speed="1"
-                autoplay
-                loop
-              />
             </motion.div>
             
             <motion.div
