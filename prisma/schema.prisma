@@ -45,3 +45,12 @@ model Procedimento {
 
   @@map("TB_PROCEDIMENTOS")
 }
+
+model EmailLembrete {
+  id               Int      @id @default(autoincrement()) @map("ID")
+  dataEnvio        DateTime @map("DATA_ENVIO")
+  dataCriacao      DateTime @default(now()) @map("DATA_CRIACAO")
+  dataAtualizacao  DateTime @default(now()) @updatedAt @map("DATA_ATUALIZACAO")
+
+  @@map("TB_EMAIL_LEMBRETES")
+}

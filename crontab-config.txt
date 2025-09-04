@@ -1,0 +1,14 @@
+# Crontab para Lembrete de Procedimentos
+# Executa todos os dias às 19:00 (7 PM)
+
+# Opção 1: Via API (Recomendado - mais confiável)
+0 19 * * * curl -X POST https://procedure-controll.vercel.app/api/lembrete
+
+# Opção 2: Via script local (se preferir execução local)
+# 0 19 * * * cd /var/www/projetos\ pessoais/procedure-controll && node scripts/lembrete-daily.js
+
+# Opção 3: Com log de saída
+# 0 19 * * * curl -X POST https://procedure-controll.vercel.app/api/lembrete >> /var/log/lembrete-procedimentos.log 2>&1
+
+# Opção 4: Com notificação de erro
+# 0 19 * * * curl -X POST https://procedure-controll.vercel.app/api/lembrete || echo "Erro ao enviar lembrete em $(date)" >> /var/log/lembrete-erro.log
