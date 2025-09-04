@@ -20,6 +20,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Controle de Procedimentos Médicos",
   description: "Sistema de controle e monitoramento de procedimentos médicos",
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({
