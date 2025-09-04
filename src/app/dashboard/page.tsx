@@ -21,7 +21,7 @@ import ProcedimentoForm from "../../components/ui/ProcedimentoForm";
 import AnimatedTable from "../../components/ui/AnimatedTable";
 import NovoTipoProcedimento from "../../components/ui/NovoTipoProcedimento";
 import EmptyState from "../../components/ui/EmptyState";
-import { procedimentoService, tipoProcedimentoService, Procedimento as ProcedimentoDB, TipoProcedimento } from "@/lib/services";
+import { Procedimento as ProcedimentoDB, TipoProcedimento } from "@/lib/services";
 import { useAlert } from "@/components/ui/Alert";
 
 
@@ -48,32 +48,12 @@ export default function DashboardPage() {
     .slice(0, 3)
     .map(([nome, quantidade]) => ({ nome, quantidade }));
 
-  const handleSubmit = async (data: { idTipoProcedimento: number; data: string; observacao: string }) => {
-    try {
-      const novoProcedimento = await procedimentoService.criar({
-        idTipoProcedimento: data.idTipoProcedimento,
-        idUsuario: 1,
-        dataProcedimento: new Date(data.data),
-        observacao: data.observacao
-      });
-      
-      setProcedimentos([novoProcedimento, ...procedimentos]);
-      console.log("Novo procedimento cadastrado:", novoProcedimento);
-    } catch (error) {
-      console.error("Erro ao cadastrar procedimento:", error);
-      alert("Erro ao cadastrar procedimento. Tente novamente.");
-    }
+  const handleSubmit = (data: { idTipoProcedimento: number; data: string; observacao: string }) => {
+    console.log("Novo procedimento cadastrado:", data);
   };
 
-  const handleNovoTipo = async (novoTipo: string) => {
-    try {
-      const novoTipoProc = await tipoProcedimentoService.criar(novoTipo);
-      setTiposProcedimentos([...tiposProcedimentos, novoTipoProc]);
-      console.log("Novo tipo de procedimento adicionado:", novoTipoProc);
-    } catch (error) {
-      console.error("Erro ao adicionar tipo:", error);
-      alert("Erro ao adicionar tipo. Tente novamente.");
-    }
+  const handleNovoTipo = (novoTipo: string) => {
+    console.log("Novo tipo de procedimento adicionado:", novoTipo);
   };
 
   const handleLogout = () => {
@@ -81,25 +61,7 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    const carregarDados = async () => {
-      try {
-        setLoading(true);
-        const [procedimentosData, tiposData] = await Promise.all([
-          procedimentoService.listarTodos(),
-          tipoProcedimentoService.listarTodos()
-        ]);
-        
-        setProcedimentos(procedimentosData);
-        setTiposProcedimentos(tiposData);
-      } catch (error) {
-        console.error("Erro ao carregar dados:", error);
-        alert("Erro ao carregar dados do banco. Tente novamente.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    carregarDados();
+    setLoading(false);
   }, []);
 
   return (

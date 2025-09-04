@@ -37,6 +37,7 @@ export default function LoginPage() {
         setIsLoading(false);
       }
     } catch (error) {
+      console.error('💥 Erro na autenticação:', error);
       showAlert({
         type: 'error',
         title: 'Erro de Conexão',
@@ -72,7 +73,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-2 sm:p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-2 sm:p-4 md:p-6 lg:p-8 relative overflow-hidden">
       <div className="absolute inset-0 opacity-20">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[length:20px_20px]" />
@@ -93,18 +94,18 @@ export default function LoginPage() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl relative z-10 px-2 sm:px-0"
+        className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg relative z-10 px-2 sm:px-4"
       >
         <motion.div
           variants={itemVariants}
-          className="text-center mb-6 sm:mb-8"
+          className="text-center mb-4 sm:mb-6 md:mb-8"
         >
           <motion.div
-            className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4 sm:mb-6"
+            className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4 sm:mb-6"
             whileHover={{ scale: 1.1, rotate: 5 }}
             transition={{ duration: 0.3 }}
           >
-            <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+            <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-white" />
           </motion.div>
           
           <motion.h1 
@@ -119,10 +120,10 @@ export default function LoginPage() {
 
         <motion.div
           variants={itemVariants}
-          className="bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-6 md:p-8 border border-white/20"
+          className="bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-6 md:p-8 lg:p-10 border border-white/20"
         >
-          <div className="flex justify-center mb-6 sm:mb-8">
-            <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32">
+          <div className="flex justify-center mb-6 sm:mb-8 md:mb-10 lg:mb-12">
+            <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 xl:w-40 xl:h-40">
               <iframe
                 src="https://lottie.host/embed/91fff782-8075-4324-930c-899db11d2c75/mL8EY31VUt.lottie"
                 style={{ width: '100%', height: '100%', border: 'none' }}
@@ -139,7 +140,7 @@ export default function LoginPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 onSubmit={handleLogin}
-                className="space-y-4 sm:space-y-6"
+                className="space-y-4 sm:space-y-6 md:space-y-8 lg:space-y-10"
               >
                 <motion.div
                   variants={itemVariants}
@@ -147,7 +148,7 @@ export default function LoginPage() {
                   transition={{ duration: 0.2 }}
                 >
                   <label className="block text-sm font-medium text-white mb-2">
-                    Usuário
+                    Email ou Usuário
                   </label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4 sm:w-5 sm:h-5" />
@@ -156,7 +157,7 @@ export default function LoginPage() {
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-3 sm:py-4 border border-white/20 rounded-lg sm:rounded-xl bg-white/10 backdrop-blur-sm text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
-                      placeholder="Digite seu usuário"
+                      placeholder="admin@sistema.com ou admin"
                       required
                     />
                   </div>
@@ -171,7 +172,7 @@ export default function LoginPage() {
                     Senha
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4 sm:w-5 sm:h-5" />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
                     <input
                       type={showPassword ? "text" : "password"}
                       value={password}
@@ -232,14 +233,7 @@ export default function LoginPage() {
             )}
           </AnimatePresence>
 
-          <motion.div 
-            className="mt-6 sm:mt-8 text-center p-3 sm:p-4 bg-white/5 rounded-lg sm:rounded-xl border border-white/10"
-            variants={itemVariants}
-          >
-            <p className="text-xs sm:text-sm text-slate-300">
-              Use: <span className="font-mono bg-white/10 px-2 sm:px-3 py-1 rounded-lg text-white text-xs sm:text-sm">admin</span> / <span className="font-mono bg-white/10 px-2 sm:px-3 py-1 rounded-lg text-white text-xs sm:text-sm">123456</span>
-            </p>
-          </motion.div>
+
         </motion.div>
       </motion.div>
       <AlertContainer />
