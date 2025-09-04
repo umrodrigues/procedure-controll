@@ -32,7 +32,7 @@ export default function DashboardPage() {
   const [tiposProcedimentos, setTiposProcedimentos] = useState<TipoProcedimento[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLocalLoading] = useState(true);
-  const [mesAtual] = useState(0);
+  const mesAtual = new Date().getMonth();
   const [editModal, setEditModal] = useState<{ isOpen: boolean; procedimento: { id: number; nome: string; data: string; observacao: string } | null }>({ isOpen: false, procedimento: null });
   const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; id: number | null; message: string }>({ isOpen: false, id: null, message: '' });
   const [confirmTipoModal, setConfirmTipoModal] = useState<{ isOpen: boolean; id: number | null; message: string }>({ isOpen: false, id: null, message: '' });
