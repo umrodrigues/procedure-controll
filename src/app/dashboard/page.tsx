@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { 
   TrendingUp, 
@@ -37,6 +37,12 @@ export default function DashboardPage() {
   const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; id: number | null; message: string }>({ isOpen: false, id: null, message: '' });
   const { showAlert, AlertContainer } = useAlert();
   const { setLoading } = useLoadingStore();
+  
+  const setLoadingRef = useRef(setLoading);
+  const showAlertRef = useRef(showAlert);
+  
+  setLoadingRef.current = setLoading;
+  showAlertRef.current = showAlert;
 
   const totalProcedimentos = procedimentos.length;
   const procedimentosEsteMes = procedimentos.filter(p => new Date(p.dataProcedimento).getMonth() === mesAtual).length;
@@ -231,51 +237,51 @@ export default function DashboardPage() {
     window.location.href = "/";
   };
 
-  const carregarDados = useCallback(async () => {
-    setLoading(true, 'Carregando dados...');
-    try {
-      const [procedimentosRes, tiposRes] = await Promise.all([
-        fetch('/api/procedimentos'),
-        fetch('/api/tipos-procedimentos')
-      ]);
-
-      if (procedimentosRes.ok) {
-        const procedimentosData = await procedimentosRes.json();
-        setProcedimentos(procedimentosData);
-      } else {
-        showAlert({
-          type: 'error',
-          title: 'Erro!',
-          message: 'Erro ao carregar procedimentos.'
-        });
-      }
-
-      if (tiposRes.ok) {
-        const tiposData = await tiposRes.json();
-        setTiposProcedimentos(tiposData);
-      } else {
-        showAlert({
-          type: 'error',
-          title: 'Erro!',
-          message: 'Erro ao carregar tipos de procedimentos.'
-        });
-      }
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error);
-      showAlert({
-        type: 'error',
-        title: 'Erro!',
-        message: 'Erro de conexão ao carregar dados.'
-      });
-    } finally {
-      setLoading(false);
-      setLocalLoading(false);
-    }
-  }, [setLoading, showAlert]);
-
   useEffect(() => {
+    const carregarDados = async () => {
+      setLoadingRef.current(true, 'Carregando dados...');
+      try {
+        const [procedimentosRes, tiposRes] = await Promise.all([
+          fetch('/api/procedimentos'),
+          fetch('/api/tipos-procedimentos')
+        ]);
+
+        if (procedimentosRes.ok) {
+          const procedimentosData = await procedimentosRes.json();
+          setProcedimentos(procedimentosData);
+        } else {
+          showAlertRef.current({
+            type: 'error',
+            title: 'Erro!',
+            message: 'Erro ao carregar procedimentos.'
+          });
+        }
+
+        if (tiposRes.ok) {
+          const tiposData = await tiposRes.json();
+          setTiposProcedimentos(tiposData);
+        } else {
+          showAlertRef.current({
+            type: 'error',
+            title: 'Erro!',
+            message: 'Erro ao carregar tipos de procedimentos.'
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+        showAlertRef.current({
+          type: 'error',
+          title: 'Erro!',
+          message: 'Erro de conexão ao carregar dados.'
+        });
+      } finally {
+        setLoadingRef.current(false);
+        setLocalLoading(false);
+      }
+    };
+
     carregarDados();
-  }, [carregarDados]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">

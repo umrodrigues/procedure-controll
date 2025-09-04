@@ -29,6 +29,7 @@ export default function RootLayout({
         <script
           src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.6.2/dist/dotlottie-wc.js"
           type="module"
+          async
         />
       </head>
       <body className="antialiased">

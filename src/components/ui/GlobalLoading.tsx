@@ -2,12 +2,17 @@
 
 import { useLoadingStore } from '@/lib/store'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Loader2 } from 'lucide-react'
 
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      'dotlottie-wc': any;
+      'dotlottie-wc': {
+        src: string;
+        style: React.CSSProperties;
+        speed: string;
+        autoplay: boolean;
+        loop: boolean;
+      };
     }
   }
 }

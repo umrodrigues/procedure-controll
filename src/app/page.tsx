@@ -115,7 +115,7 @@ export default function LoginPage() {
           </motion.div>
           
           <motion.h1 
-            className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent leading-tight"
+            className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent leading-tight"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.3 }}
           >

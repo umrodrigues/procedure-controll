@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { procedimentoService } from '@/lib/services-server'
 import { prisma } from '@/lib/database'
 
 export async function PUT(
