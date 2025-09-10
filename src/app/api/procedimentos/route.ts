@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
     
     console.log('Data recebida:', data, 'Tipo:', typeof data);
-    const dataProcedimento = new Date(data);
+    const dataProcedimento = new Date(data + 'T00:00:00');
     console.log('Data convertida:', dataProcedimento, 'É válida:', !isNaN(dataProcedimento.getTime()));
     
     if (isNaN(dataProcedimento.getTime())) {
