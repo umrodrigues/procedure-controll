@@ -82,7 +82,11 @@ export default function AnimatedTable({ procedimentos, delay = 0, onEdit, onDele
                   <div className="flex items-center">
                     <Calendar className="w-4 h-4 text-green-500 mr-3" />
                     <span className="text-sm text-gray-900">
-                      {new Date(procedimento.data).toLocaleDateString('pt-BR')}
+                      {(() => {
+                        const [ano, mes, dia] = procedimento.data.split('-').map(Number);
+                        const data = new Date(ano, mes - 1, dia);
+                        return data.toLocaleDateString('pt-BR');
+                      })()}
                     </span>
                   </div>
                 </td>

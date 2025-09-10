@@ -14,7 +14,6 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    console.log('Dados recebidos:', body)
     
     const { idTipoProcedimento, idUsuario, data, observacao } = body
     
@@ -43,32 +42,16 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
     
-    console.log('Data recebida:', data, 'Tipo:', typeof data);
-    
     const [ano, mes, dia] = data.split('-').map(Number);
-    const dataProcedimento = new Date(ano, mes - 1, dia, 12, 0, 0, 0);
-    
-    console.log('Data convertida:', dataProcedimento, 'É válida:', !isNaN(dataProcedimento.getTime()));
-    console.log('Data ISO string:', dataProcedimento.toISOString());
-    console.log('Data local string:', dataProcedimento.toLocaleDateString());
-    console.log('Data UTC string:', dataProcedimento.toUTCString());
-    
-    if (isNaN(dataProcedimento.getTime())) {
-      return NextResponse.json({ 
-        message: 'Data inválida fornecida',
-        received: data,
-        type: typeof data
-      }, { status: 400 })
-    }
+    const dataProcedimento = new Date(Date.UTC(ano, mes - 1, dia, 12, 0, 0, 0));
     
     const procedimento = await procedimentoService.criar({
       idTipoProcedimento,
       idUsuario,
-      dataProcedimento: new Date(data + 'T12:00:00'),
+      dataProcedimento,
       observacao
     })
     
-    console.log('Procedimento criado:', procedimento)
     return NextResponse.json(procedimento, { status: 201 })
   } catch (error) {
     console.error('Erro ao criar procedimento:', error)
