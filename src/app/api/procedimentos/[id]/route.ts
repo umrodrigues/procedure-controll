@@ -32,7 +32,7 @@ export async function PUT(
       where: { id: parseInt(id) },
       data: {
         idTipoProcedimento,
-        dataProcedimento: new Date(data + 'T00:00:00'),
+        dataProcedimento: new Date(data + 'T12:00:00.000Z'),
         observacao
       },
       include: {
