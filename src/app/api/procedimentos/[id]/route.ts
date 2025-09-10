@@ -32,10 +32,7 @@ export async function PUT(
       where: { id: parseInt(id) },
       data: {
         idTipoProcedimento,
-        dataProcedimento: (() => {
-          const [ano, mes, dia] = data.split('-').map(Number);
-          return new Date(ano, mes - 1, dia, 12, 0, 0, 0);
-        })(),
+        dataProcedimento: new Date(data + 'T12:00:00'),
         observacao
       },
       include: {
