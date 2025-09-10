@@ -44,8 +44,13 @@ export async function POST(request: NextRequest) {
     }
     
     console.log('Data recebida:', data, 'Tipo:', typeof data);
-    const dataProcedimento = new Date(data + 'T12:00:00.000Z');
+     
+    const [ano, mes, dia] = data.split('-').map(Number);
+    const dataProcedimento = new Date(ano, mes - 1, dia, 12, 0, 0, 0);
+    
     console.log('Data convertida:', dataProcedimento, 'É válida:', !isNaN(dataProcedimento.getTime()));
+    console.log('Data ISO string:', dataProcedimento.toISOString());
+    console.log('Data local string:', dataProcedimento.toLocaleDateString());
     
     if (isNaN(dataProcedimento.getTime())) {
       return NextResponse.json({ 

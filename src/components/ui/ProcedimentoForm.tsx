@@ -26,6 +26,7 @@ export default function ProcedimentoForm({
     if (formData.idTipoProcedimento === 0) {
       return;
     }
+    console.log('Formulário - Data antes de enviar:', formData.data, 'Tipo:', typeof formData.data);
     onSubmit(formData);
     setFormData({ idTipoProcedimento: 0, data: "", observacao: "" });
   };
@@ -122,7 +123,10 @@ export default function ProcedimentoForm({
               <input
                 type="date"
                 value={formData.data}
-                onChange={(e) => setFormData({...formData, data: e.target.value})}
+                onChange={(e) => {
+                  console.log('Input - Data selecionada:', e.target.value, 'Tipo:', typeof e.target.value);
+                  setFormData({...formData, data: e.target.value});
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 required
               />
